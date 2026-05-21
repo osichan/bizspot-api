@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: bizspot-api
+    runtime: docker
+    plan: free
+    healthCheckPath: /api
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DIM_RIA_API_KEY
+        sync: false   # set this secret manually in the Render dashboard
