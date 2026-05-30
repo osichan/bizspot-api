@@ -4,7 +4,7 @@ import { AnalysisService } from '../analysis/analysis.service'
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-const makeAvailabilityService = (nominatimResult: Awaited<ReturnType<any>>) => {
+const makeAvailabilityService = (nominatimResult: object) => {
   const mockNominatim = { getAddressInfo: jest.fn().mockResolvedValue(nominatimResult) }
   return {
     svc: new LocationAvailabilityService(mockNominatim as any),
@@ -12,55 +12,44 @@ const makeAvailabilityService = (nominatimResult: Awaited<ReturnType<any>>) => {
   }
 }
 
+const ua = (region: string, county: string | null, settlement: string) => ({
+  country: 'Ukraine',
+  countryCode: 'ua',
+  region,
+  county,
+  settlement,
+})
+
 // ── LocationAvailabilityService ───────────────────────────────────────────────
 
-describe('LocationAvailabilityService', () => {
-  // ── Available locations ─────────────────────────────────────────────────────
-
+describe('LocationAvailabilityService — available locations', () => {
   it('Kyiv — available', async () => {
-    const { svc } = makeAvailabilityService({
-      country: 'Ukraine',
-      countryCode: 'ua',
-      region: 'Kyiv Oblast',
-      county: 'Pecherskyi District',
-      settlement: 'Kyiv',
-    })
-    const result = await svc.check(50.4501, 30.5234)
-    expect(result.available).toBe(true)
-    expect(result.reason).toBeNull()
-    expect(result.message).toBeNull()
-    expect(result.country).toBe('Ukraine')
-    expect(result.region).toBe('Kyiv Oblast')
+    const { svc } = makeAvailabilityService(ua('Kyiv City', null, 'Kyiv'))
+    const r = await svc.check(50.4501, 30.5234)
+    expect(r.available).toBe(true)
+    expect(r.reason).toBeNull()
+    expect(r.message).toBeNull()
+    expect(r.country).toBe('Ukraine')
+    expect(r.countryCode).toBe('ua')
   })
 
   it('Lviv — available', async () => {
-    const { svc } = makeAvailabilityService({
-      country: 'Ukraine',
-      countryCode: 'ua',
-      region: 'Lviv Oblast',
-      county: 'Lviv Raion',
-      settlement: 'Lviv',
-    })
-    const result = await svc.check(49.8397, 24.0297)
-    expect(result.available).toBe(true)
-    expect(result.reason).toBeNull()
+    const { svc } = makeAvailabilityService(ua('Lviv Oblast', 'Lviv Raion', 'Lviv'))
+    const r = await svc.check(49.8397, 24.0297)
+    expect(r.available).toBe(true)
+    expect(r.reason).toBeNull()
   })
 
-  it('Kharkiv city (not in restricted raion) — available', async () => {
-    const { svc } = makeAvailabilityService({
-      country: 'Ukraine',
-      countryCode: 'ua',
-      region: 'Kharkiv Oblast',
-      county: 'Kharkiv Raion',
-      settlement: 'Kharkiv',
-    })
-    const result = await svc.check(49.9935, 36.2304)
-    expect(result.available).toBe(true)
+  it('Odesa — available', async () => {
+    const { svc } = makeAvailabilityService(ua('Odesa Oblast', 'Odesa Raion', 'Odesa'))
+    const r = await svc.check(46.4825, 30.7233)
+    expect(r.available).toBe(true)
+    expect(r.reason).toBeNull()
   })
+})
 
-  // ── Outside Ukraine ─────────────────────────────────────────────────────────
-
-  it('Poland coordinates — outside_ukraine', async () => {
+describe('LocationAvailabilityService — outside Ukraine', () => {
+  it('Poland (Warsaw) — outside_ukraine', async () => {
     const { svc } = makeAvailabilityService({
       country: 'Poland',
       countryCode: 'pl',
@@ -68,116 +57,96 @@ describe('LocationAvailabilityService', () => {
       county: null,
       settlement: 'Warsaw',
     })
-    const result = await svc.check(52.2297, 21.0122)
-    expect(result.available).toBe(false)
-    expect(result.reason).toBe('outside_ukraine')
-    expect(result.country).toBe('Poland')
+    const r = await svc.check(52.2297, 21.0122)
+    expect(r.available).toBe(false)
+    expect(r.reason).toBe('outside_ukraine')
+    expect(r.country).toBe('Poland')
+    expect(r.countryCode).toBe('pl')
   })
+})
 
-  it('Germany coordinates — outside_ukraine', async () => {
-    const { svc } = makeAvailabilityService({
-      country: 'Germany',
-      countryCode: 'de',
-      region: 'Bavaria',
-      county: null,
-      settlement: 'Munich',
-    })
-    const result = await svc.check(48.1351, 11.582)
-    expect(result.available).toBe(false)
-    expect(result.reason).toBe('outside_ukraine')
-  })
-
-  // ── Restricted territories ──────────────────────────────────────────────────
-
+describe('LocationAvailabilityService — restricted territories', () => {
   it('Crimea — restricted_safety_area', async () => {
-    const { svc } = makeAvailabilityService({
-      country: 'Ukraine',
-      countryCode: 'ua',
-      region: 'Crimea',
-      county: null,
-      settlement: 'Simferopol',
-    })
-    const result = await svc.check(44.9521, 34.1024)
-    expect(result.available).toBe(false)
-    expect(result.reason).toBe('restricted_safety_area')
-    expect(result.country).toBe('Ukraine')
+    const { svc } = makeAvailabilityService(ua('Crimea', null, 'Simferopol'))
+    const r = await svc.check(44.9521, 34.1024)
+    expect(r.available).toBe(false)
+    expect(r.reason).toBe('restricted_safety_area')
   })
 
-  it('Crimea via "Republic of Crimea" Nominatim variant — restricted_safety_area', async () => {
-    const { svc } = makeAvailabilityService({
-      country: 'Ukraine',
-      countryCode: 'ua',
-      region: 'Republic of Crimea',
-      county: null,
-      settlement: 'Yalta',
-    })
-    const result = await svc.check(44.4952, 34.1663)
-    expect(result.available).toBe(false)
-    expect(result.reason).toBe('restricted_safety_area')
+  it('Crimea via "Autonomous Republic of Crimea" Nominatim variant — restricted_safety_area', async () => {
+    const { svc } = makeAvailabilityService(ua('Autonomous Republic of Crimea', null, 'Yalta'))
+    const r = await svc.check(44.4952, 34.1663)
+    expect(r.available).toBe(false)
+    expect(r.reason).toBe('restricted_safety_area')
   })
 
   it('Sevastopol — restricted_safety_area', async () => {
-    const { svc } = makeAvailabilityService({
-      country: 'Ukraine',
-      countryCode: 'ua',
-      region: 'Sevastopol',
-      county: null,
-      settlement: 'Sevastopol',
-    })
-    const result = await svc.check(44.6166, 33.5254)
-    expect(result.available).toBe(false)
-    expect(result.reason).toBe('restricted_safety_area')
+    const { svc } = makeAvailabilityService(ua('Sevastopol', null, 'Sevastopol'))
+    const r = await svc.check(44.6166, 33.5254)
+    expect(r.available).toBe(false)
+    expect(r.reason).toBe('restricted_safety_area')
   })
 
   it('Donetsk Oblast — restricted_safety_area', async () => {
-    const { svc } = makeAvailabilityService({
-      country: 'Ukraine',
-      countryCode: 'ua',
-      region: 'Donetsk Oblast',
-      county: null,
-      settlement: 'Donetsk',
-    })
-    const result = await svc.check(48.0, 37.8)
-    expect(result.available).toBe(false)
-    expect(result.reason).toBe('restricted_safety_area')
+    const { svc } = makeAvailabilityService(ua('Donetsk Oblast', null, 'Donetsk'))
+    const r = await svc.check(48.0, 37.8)
+    expect(r.available).toBe(false)
+    expect(r.reason).toBe('restricted_safety_area')
   })
 
   it('Luhansk Oblast — restricted_safety_area', async () => {
-    const { svc } = makeAvailabilityService({
-      country: 'Ukraine',
-      countryCode: 'ua',
-      region: 'Luhansk Oblast',
-      county: null,
-      settlement: 'Luhansk',
-    })
-    const result = await svc.check(48.574, 39.3078)
-    expect(result.available).toBe(false)
-    expect(result.reason).toBe('restricted_safety_area')
+    const { svc } = makeAvailabilityService(ua('Luhansk Oblast', null, 'Luhansk'))
+    const r = await svc.check(48.574, 39.3078)
+    expect(r.available).toBe(false)
+    expect(r.reason).toBe('restricted_safety_area')
   })
 
-  it('Melitopol Raion, Zaporizhzhia — restricted_safety_area', async () => {
-    const { svc } = makeAvailabilityService({
-      country: 'Ukraine',
-      countryCode: 'ua',
-      region: 'Zaporizhzhia Oblast',
-      county: 'Melitopol Raion',
-      settlement: 'Melitopol',
-    })
-    const result = await svc.check(46.85, 35.37)
-    expect(result.available).toBe(false)
-    expect(result.reason).toBe('restricted_safety_area')
+  it('Zaporizhzhia city — restricted_safety_area (KMU spelling)', async () => {
+    const { svc } = makeAvailabilityService(ua('Zaporizhzhia Oblast', 'Zaporizhzhia Raion', 'Zaporizhzhia'))
+    const r = await svc.check(47.8388, 35.1396)
+    expect(r.available).toBe(false)
+    expect(r.reason).toBe('restricted_safety_area')
   })
 
-  it('Zaporizhzhia city (not in restricted raion) — available', async () => {
-    const { svc } = makeAvailabilityService({
-      country: 'Ukraine',
-      countryCode: 'ua',
-      region: 'Zaporizhzhia Oblast',
-      county: 'Zaporizhzhia Raion',
-      settlement: 'Zaporizhzhia',
-    })
-    const result = await svc.check(47.8388, 35.1396)
-    expect(result.available).toBe(true)
+  it('Zaporizhzhia city — restricted_safety_area (Nominatim short spelling "Zaporizhia")', async () => {
+    const { svc } = makeAvailabilityService(ua('Zaporizhia Oblast', 'Zaporizhia Raion', 'Zaporizhzhia'))
+    const r = await svc.check(47.8388, 35.1396)
+    expect(r.available).toBe(false)
+    expect(r.reason).toBe('restricted_safety_area')
+  })
+
+  it('Any point in Zaporizhzhia Oblast — restricted_safety_area', async () => {
+    const { svc } = makeAvailabilityService(ua('Zaporizhzhia Oblast', 'Melitopol Raion', 'Melitopol'))
+    const r = await svc.check(46.85, 35.37)
+    expect(r.available).toBe(false)
+    expect(r.reason).toBe('restricted_safety_area')
+  })
+
+  it('Kherson city — restricted_safety_area', async () => {
+    const { svc } = makeAvailabilityService(ua('Kherson Oblast', 'Kherson Raion', 'Kherson'))
+    const r = await svc.check(46.6354, 32.6169)
+    expect(r.available).toBe(false)
+    expect(r.reason).toBe('restricted_safety_area')
+  })
+
+  it('Any point in Kherson Oblast — restricted_safety_area', async () => {
+    const { svc } = makeAvailabilityService(ua('Kherson Oblast', 'Henichesk Raion', 'Henichesk'))
+    const r = await svc.check(46.1768, 34.7981)
+    expect(r.available).toBe(false)
+    expect(r.reason).toBe('restricted_safety_area')
+  })
+
+  it('restricted response includes correct fields', async () => {
+    const { svc } = makeAvailabilityService(ua('Donetsk Oblast', null, 'Kramatorsk'))
+    const r = await svc.check(48.7, 37.57)
+    expect(r.available).toBe(false)
+    expect(r.reason).toBe('restricted_safety_area')
+    expect(r.message).toBe(
+      'Standard business analysis is unavailable for this location due to limited market data reliability and safety risks.',
+    )
+    expect(r.country).toBe('Ukraine')
+    expect(r.countryCode).toBe('ua')
+    expect(r.region).toBe('Donetsk Oblast')
   })
 })
 
@@ -203,7 +172,7 @@ describe('AnalysisService — location availability gate', () => {
     return { svc, mockLocationAvailability, mockMarketProvider }
   }
 
-  it('throws UnprocessableEntityException when location is outside Ukraine', async () => {
+  it('throws 422 for location outside Ukraine', async () => {
     const { svc } = buildAnalysisService({
       available: false,
       reason: 'outside_ukraine',
@@ -219,7 +188,7 @@ describe('AnalysisService — location availability gate', () => {
     ).rejects.toThrow(UnprocessableEntityException)
   })
 
-  it('throws UnprocessableEntityException when location is in restricted territory', async () => {
+  it('throws 422 for restricted territory (Donetsk)', async () => {
     const { svc } = buildAnalysisService({
       available: false,
       reason: 'restricted_safety_area',
@@ -235,7 +204,39 @@ describe('AnalysisService — location availability gate', () => {
     ).rejects.toThrow(UnprocessableEntityException)
   })
 
-  it('UnprocessableEntityException response includes reason and location fields', async () => {
+  it('throws 422 for restricted territory (Zaporizhzhia)', async () => {
+    const { svc } = buildAnalysisService({
+      available: false,
+      reason: 'restricted_safety_area',
+      message: 'Standard business analysis is unavailable for this location due to limited market data reliability and safety risks.',
+      country: 'Ukraine',
+      countryCode: 'ua',
+      region: 'Zaporizhzhia Oblast',
+      district: null,
+      settlement: 'Zaporizhzhia',
+    })
+    await expect(
+      svc.analyze({ lat: 47.8388, lng: 35.1396, businessType: 'coffee_shop', budget: 50000 }),
+    ).rejects.toThrow(UnprocessableEntityException)
+  })
+
+  it('throws 422 for restricted territory (Kherson)', async () => {
+    const { svc } = buildAnalysisService({
+      available: false,
+      reason: 'restricted_safety_area',
+      message: 'Standard business analysis is unavailable for this location due to limited market data reliability and safety risks.',
+      country: 'Ukraine',
+      countryCode: 'ua',
+      region: 'Kherson Oblast',
+      district: null,
+      settlement: 'Kherson',
+    })
+    await expect(
+      svc.analyze({ lat: 46.6354, lng: 32.6169, businessType: 'coffee_shop', budget: 50000 }),
+    ).rejects.toThrow(UnprocessableEntityException)
+  })
+
+  it('blocked response has no score or verdict fields', async () => {
     const { svc } = buildAnalysisService({
       available: false,
       reason: 'restricted_safety_area',
@@ -254,12 +255,30 @@ describe('AnalysisService — location availability gate', () => {
     }
     expect(thrown).toBeInstanceOf(UnprocessableEntityException)
     const body = thrown!.getResponse() as Record<string, unknown>
+    expect(body).not.toHaveProperty('score')
+    expect(body).not.toHaveProperty('verdict')
     expect(body.reason).toBe('restricted_safety_area')
     expect(body.available).toBe(false)
-    expect(body.region).toBe('Luhansk Oblast')
   })
 
-  it('proceeds to market data fetch when location is available (Kyiv)', async () => {
+  it('does not call market data provider when location is blocked', async () => {
+    const { svc, mockMarketProvider } = buildAnalysisService({
+      available: false,
+      reason: 'restricted_safety_area',
+      message: 'Standard business analysis is unavailable for this location due to limited market data reliability and safety risks.',
+      country: 'Ukraine',
+      countryCode: 'ua',
+      region: 'Kherson Oblast',
+      district: null,
+      settlement: 'Kherson',
+    })
+    await expect(
+      svc.analyze({ lat: 46.6354, lng: 32.6169, businessType: 'coffee_shop', budget: 50000 }),
+    ).rejects.toThrow(UnprocessableEntityException)
+    expect(mockMarketProvider.getSnapshot).not.toHaveBeenCalled()
+  })
+
+  it('proceeds to market data fetch for available location (Kyiv)', async () => {
     const { svc, mockMarketProvider } = buildAnalysisService({
       available: true,
       reason: null,
@@ -270,7 +289,6 @@ describe('AnalysisService — location availability gate', () => {
       district: null,
       settlement: 'Kyiv',
     })
-    // Market provider throws to stop further execution — we only want to confirm the gate passed
     mockMarketProvider.getSnapshot.mockRejectedValue(new Error('stop'))
     await expect(
       svc.analyze({ lat: 50.4501, lng: 30.5234, businessType: 'coffee_shop', budget: 50000 }),

@@ -29,7 +29,7 @@ export class LocationAvailabilityService {
     }
 
     const normalizedState = normalizeState(region ?? '');
-    if (isRestrictedTerritory(normalizedState, district)) {
+    if (isRestrictedTerritory(normalizedState)) {
       return {
         available: false,
         reason: 'restricted_safety_area',
