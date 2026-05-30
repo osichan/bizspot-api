@@ -27,8 +27,8 @@ export const METRIC_DESCRIPTIONS = {
     critical: 'market is heavily saturated',
     high: 'significant competition in the area',
     moderate: 'competition is manageable',
-    low: 'limited competition',
-    minimal: 'almost no competition',
+    low: 'limited competition detected in map data',
+    minimal: 'no competitors found in available map data',
   },
 
   demand: {

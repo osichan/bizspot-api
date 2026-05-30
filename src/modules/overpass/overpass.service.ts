@@ -21,7 +21,7 @@ type GetCompetitorAndTrafficProps = {
   readonly lat: number;
   readonly lng: number;
   readonly radius: number;
-  readonly osmTag: string;
+  readonly osmTags: readonly string[];
 };
 
 type GetBuildingCountProps = {
@@ -70,19 +70,27 @@ export class OverpassService {
     lat,
     lng,
     radius,
-    osmTag,
+    osmTags,
   }: GetCompetitorAndTrafficProps): Promise<{
     competitors: number;
     trafficMultiplier: number;
     commercialDensity: number;
   }> {
-    const [key, value] = osmTag.split('=');
+    const tagLines = osmTags
+      .flatMap((osmTag) => {
+        const [key, value] = osmTag.split('=');
+        return [
+          `node["${key}"="${value}"](around:${radius},${lat},${lng});`,
+          `way["${key}"="${value}"](around:${radius},${lat},${lng});`,
+          `relation["${key}"="${value}"](around:${radius},${lat},${lng});`,
+        ];
+      })
+      .join('\n        ');
+
     const query = `
       [out:json][timeout:25];
       (
-        node["${key}"="${value}"](around:${radius},${lat},${lng});
-        way["${key}"="${value}"](around:${radius},${lat},${lng});
-        relation["${key}"="${value}"](around:${radius},${lat},${lng});
+        ${tagLines}
       )->.competitors;
       (
         node[amenity](around:${radius},${lat},${lng});
@@ -91,6 +99,8 @@ export class OverpassService {
       .competitors out count;
       .traffic out count;
     `;
+
+    this.logger.debug(`getCompetitorAndTrafficCounts tags=[${osmTags.join(',')}] radius=${radius} lat=${lat} lng=${lng}`);
 
     let data: OverpassResponse;
     try {

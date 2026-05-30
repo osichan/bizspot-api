@@ -1,8 +1,10 @@
 export const businessTypesData = {
   coffee_shop: {
-    minBudget: 20000,
+    label: 'Coffee shop',
+    description: 'Small local cafe or takeaway coffee point',
+    minBudget: 20_000,
     urbanDependency: 0.9,
-    osmTag: 'amenity=cafe',
+    osmTags: ['amenity=cafe', 'shop=coffee'],
     radius: 500,
     saturationDensityPerKm2: 40,
     employees: 3,
@@ -10,32 +12,13 @@ export const businessTypesData = {
     utilitiesMultiplier: 0.2,
   },
 
-  car_wash: {
-    minBudget: 30000,
-    urbanDependency: 0.7,
-    osmTag: 'amenity=car_wash',
-    radius: 4000,
-    saturationDensityPerKm2: 2,
-    employees: 4,
-    avgMonthlySalaryUsd: 300,
-    utilitiesMultiplier: 0.3,
-  },
-
-  auto_repair: {
-    minBudget: 50000,
-    urbanDependency: 0.75,
-    osmTag: 'shop=car_repair',
-    radius: 10000,
-    saturationDensityPerKm2: 1,
-    employees: 5,
-    avgMonthlySalaryUsd: 500,
-    utilitiesMultiplier: 0.15,
-  },
-
   barbershop: {
-    minBudget: 15000,
+    label: 'Barbershop',
+    description: 'Hairdresser or barber salon',
+    minBudget: 15_000,
     urbanDependency: 0.8,
-    osmTag: 'shop=hairdresser',
+    // shop=beauty catches beauty salons that compete for the same customers
+    osmTags: ['shop=hairdresser', 'shop=beauty'],
     radius: 700,
     saturationDensityPerKm2: 40,
     employees: 3,
@@ -44,27 +27,110 @@ export const businessTypesData = {
   },
 
   grocery_store: {
-    minBudget: 35000,
+    label: 'Grocery store',
+    description: 'Local food and grocery retail, including convenience formats',
+    minBudget: 35_000,
     urbanDependency: 0.85,
-    osmTag: 'shop=supermarket',
+    osmTags: ['shop=supermarket', 'shop=convenience', 'shop=grocery'],
     radius: 800,
     saturationDensityPerKm2: 10,
-    employees: 6,
-    avgMonthlySalaryUsd: 330,
+    employees: 4,
+    avgMonthlySalaryUsd: 350,
     utilitiesMultiplier: 0.2,
   },
 
+  bakery: {
+    label: 'Bakery',
+    description: 'Fresh bread, pastries, and baked goods shop',
+    minBudget: 25_000,
+    urbanDependency: 0.8,
+    osmTags: ['shop=bakery'],
+    radius: 700,
+    saturationDensityPerKm2: 20,
+    employees: 3,
+    avgMonthlySalaryUsd: 350,
+    utilitiesMultiplier: 0.25,
+  },
+
+  fitness_studio: {
+    label: 'Fitness studio',
+    description: 'Gym, fitness centre, or group training studio',
+    minBudget: 50_000,
+    urbanDependency: 0.85,
+    osmTags: ['leisure=fitness_centre', 'sport=fitness'],
+    radius: 1_200,
+    saturationDensityPerKm2: 5,
+    employees: 4,
+    avgMonthlySalaryUsd: 450,
+    utilitiesMultiplier: 0.3,
+  },
+
+  flower_shop: {
+    label: 'Flower shop',
+    description: 'Fresh flowers, bouquets, and gift arrangements retail',
+    minBudget: 12_000,
+    urbanDependency: 0.75,
+    osmTags: ['shop=florist'],
+    radius: 600,
+    saturationDensityPerKm2: 15,
+    employees: 2,
+    avgMonthlySalaryUsd: 300,
+    utilitiesMultiplier: 0.1,
+  },
+
+  pet_store: {
+    label: 'Pet store',
+    description: 'Pets, pet food, accessories, and care products',
+    minBudget: 20_000,
+    urbanDependency: 0.8,
+    osmTags: ['shop=pet'],
+    radius: 900,
+    saturationDensityPerKm2: 8,
+    employees: 2,
+    avgMonthlySalaryUsd: 350,
+    utilitiesMultiplier: 0.15,
+  },
+
+  car_wash: {
+    label: 'Car wash',
+    description: 'Self-service or automatic vehicle washing station',
+    minBudget: 30_000,
+    urbanDependency: 0.7,
+    osmTags: ['amenity=car_wash'],
+    radius: 4_000,
+    saturationDensityPerKm2: 2,
+    employees: 4,
+    avgMonthlySalaryUsd: 300,
+    utilitiesMultiplier: 0.3,
+  },
+
+  auto_repair: {
+    label: 'Auto repair',
+    description: 'Car repair workshop and mechanical service station',
+    minBudget: 50_000,
+    urbanDependency: 0.75,
+    osmTags: ['shop=car_repair'],
+    radius: 10_000,
+    saturationDensityPerKm2: 1,
+    employees: 5,
+    avgMonthlySalaryUsd: 500,
+    utilitiesMultiplier: 0.15,
+  },
+
   pharmacy: {
-    minBudget: 60000,
+    label: 'Pharmacy',
+    description: 'Drugstore selling prescription and OTC medicines',
+    minBudget: 60_000,
     urbanDependency: 0.65,
-    osmTag: 'amenity=pharmacy',
+    // shop=chemist catches drugstores that sell similar OTC products
+    osmTags: ['amenity=pharmacy', 'shop=chemist'],
     radius: 500,
     saturationDensityPerKm2: 20,
     employees: 4,
     avgMonthlySalaryUsd: 450,
     utilitiesMultiplier: 0.1,
   },
-} as const;
+} as const
 
-export type BusinessType = keyof typeof businessTypesData;
-export const BUSINESS_TYPES = Object.keys(businessTypesData);
+export type BusinessType = keyof typeof businessTypesData
+export const BUSINESS_TYPES = Object.keys(businessTypesData) as BusinessType[]

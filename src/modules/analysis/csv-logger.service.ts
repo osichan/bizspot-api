@@ -9,6 +9,8 @@ type CsvRow = {
   lng: number;
   businessType: string;
   budget: number;
+  cityName: string;
+  competitorRadius: number;
   // snapshot
   population: number;
   avgRent: number;
@@ -41,7 +43,7 @@ type CsvRow = {
 };
 
 const HEADER =
-  'timestamp,lat,lng,businessType,budget,' +
+  'timestamp,lat,lng,businessType,budget,cityName,competitorRadius,' +
   'population,avgRent,commercialDensity,trafficMultiplier,competitors,saturationCompetitors,minBudget,employees,avgMonthlySalaryUsd,' +
   'demand,marketCapacity,rent,budgetMetric,monthlyBurn,runway,' +
   'marketAttractiveness,financialFeasibility,riskLevel,' +
@@ -59,6 +61,8 @@ export class CsvLoggerService {
         data.lng,
         data.businessType,
         data.budget,
+        data.cityName,
+        data.competitorRadius,
         data.population,
         data.avgRent.toFixed(2),
         data.commercialDensity.toFixed(2),

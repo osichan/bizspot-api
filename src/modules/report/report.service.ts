@@ -38,7 +38,7 @@ export class ReportService {
     return `${items.slice(0, -1).join(', ')} and ${items.at(-1)}`;
   }
 
-  private buildNaturalExplanation(risks: Record<MetricKey, RiskLevel>): string {
+  private buildNaturalExplanation(risks: Record<MetricKey, RiskLevel>, verdict: Verdict): string {
     const entries = Object.entries(risks) as [MetricKey, RiskLevel][];
 
     const negatives: string[] = [];
@@ -59,12 +59,25 @@ export class ReportService {
 
     let result = '';
 
-    if (negatives.length >= 2) {
-      result += `This opportunity looks weak, mainly because ${neg}. `;
-    } else if (positives.length >= 2) {
-      result += `This looks like a strong opportunity, driven by ${pos}. `;
+    // Opener: verdict takes precedence to prevent contradictory messaging
+    // e.g. "strong opportunity" must never appear for a RED verdict
+    if (verdict === 'RED') {
+      result += negatives.length >= 2
+        ? `This opportunity is not viable at this location, mainly because ${neg}. `
+        : `This opportunity is not recommended in its current form. `;
+    } else if (verdict === 'YELLOW') {
+      if (negatives.length >= 2) {
+        result += `This opportunity has potential but faces significant challenges: ${neg}. `;
+      } else if (positives.length >= 2) {
+        result += `This is a moderate opportunity with some strengths, including ${pos}. `;
+      } else {
+        result += `This is a balanced opportunity with mixed signals. `;
+      }
     } else {
-      result += `This is a balanced opportunity. `;
+      // GREEN
+      result += positives.length >= 2
+        ? `This looks like a strong opportunity, driven by ${pos}. `
+        : `This is a solid opportunity. `;
     }
 
     if (neg && pos) {
@@ -79,18 +92,19 @@ export class ReportService {
       result += `Other factors are average, such as ${neu}. `;
     }
 
-    if (negatives.length >= 2) {
-      result += `Improvement should focus on addressing the weakest factors before proceeding.`;
-    } else if (positives.length >= 2) {
-      result += `You can proceed, but maintaining these advantages will be critical.`;
+    // Closer: verdict-aware — RED must never say "You can proceed"
+    if (verdict === 'RED') {
+      result += `Address the critical issues before considering this location.`;
+    } else if (verdict === 'YELLOW') {
+      result += `Proceed carefully with a mitigation plan for the weaker areas.`;
     } else {
-      result += `Success will depend on execution and optimization of weaker areas.`;
+      result += `You can proceed, but maintaining these advantages will be critical.`;
     }
 
     return result.trim();
   }
 
-  generate({ metrics }: generateProps): ReportResult {
+  generate({ metrics, verdict }: generateProps): ReportResult {
     // marketCapacity = saturationRatio ∈ [0, ∞): higher = more saturated = higher risk.
     // Invert to [0,1] where 0 = saturated (critical risk), 1 = empty market (minimal risk).
     const saturationRisk = this.getRiskLevel(1 - Math.min(metrics.marketCapacity, 1));
@@ -106,7 +120,7 @@ export class ReportService {
       risks: (Object.entries(risks) as [MetricKey, RiskLevel][])
         .filter(([, v]) => NEGATIVE.includes(v))
         .map(([k, v]) => METRIC_DESCRIPTIONS[k][v]),
-      summary: this.buildNaturalExplanation(risks),
+      summary: this.buildNaturalExplanation(risks, verdict),
     };
   }
 }

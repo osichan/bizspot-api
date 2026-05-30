@@ -24,9 +24,9 @@ The system returns a structured evaluation: a viability score, verdict, estimate
 BizSpot does not give generic advice. It runs a structured analysis across four layers:
 
 ### 1. Location Understanding
-Analyzes the target area using reverse geocoding (Nominatim) and static district data:
-- population of the district
-- district activity level (traffic multiplier)
+Analyzes the target area using reverse geocoding (Nominatim) and local settlement data:
+- population of the settlement or district, resolved from the Держстат dataset (28 000+ settlements)
+- district activity level (traffic multiplier from POI density)
 - average commercial rent
 
 *Answers: is there a market here?*
@@ -93,13 +93,59 @@ For the detailed plan and step-by-step instructions see [PLAN.md](./PLAN.md) and
 
 ## City Coverage
 
-**Current version:** Lviv only (6 districts)
+**Current version:** Ukraine-wide
 
-Supported districts: `sykhiv`, `frankivskyi`, `shevchenkivskyi`, `lychakivskyi`, `zaliznychnyi`, `halytskyi`
+Settlement population data covers 28,655 settlements across all 25 oblasts, sourced from official Держстат data. Any location that Nominatim can reverse-geocode will receive a population estimate; unknown settlements fall back to OSM building count or Nominatim place-type defaults.
 
 Supported business types: `coffee_shop`, `car_wash`, `auto_repair`, `barbershop`, `grocery_store`, `pharmacy`
 
-**Future:** Ukraine-wide via dynamic data sources and city detection through Nominatim.
+---
+
+## Population Data
+
+Settlement population is resolved from a local static dataset generated from official government data.
+
+**Source:** "Чисельність наявного населення по регіонах, районах, територіальних громадах та населених пунктах" — [data.gov.ua](https://data.gov.ua) / Держстат (State Statistics Service of Ukraine), 2020–2021 census estimates.
+
+**Generated file:** `src/data/ua-settlements-population.generated.json`
+- 28,655 settlements, all 25 oblasts
+- each entry: Ukrainian name, KMU 2010 transliteration, region, district, hromada, population
+- file size ~12 MB; included in the production `dist/` build and Docker image
+
+**Regeneration** (required only when the official XLSX is updated):
+
+```bash
+# Place updated XLSX at:
+tools/data-source/population.xlsx
+
+# Run the generator:
+npx ts-node scripts/generate-settlements.ts
+
+# Rebuild:
+yarn build
+```
+
+**Runtime:** the application reads the generated JSON at startup via `fs.readFileSync`. The original XLSX is not required at runtime and is not included in the Docker image.
+
+**Population lookup priority:**
+1. Known major city (static table — Kyiv, Lviv, Kharkiv, …)
+2. Generated Держстат dataset — matched by KMU transliteration or Ukrainian name, disambiguated by oblast and raion
+3. Known OSM-name-vs-official discrepancy overrides (manual list, currently only Рудне/Rudno)
+4. OSM building count (Overpass API) around the selected radius
+5. Nominatim place-type fallback (town → 10 000, suburb → 8 000, village → 3 000)
+
+**Adaptive competitor search radius:**
+
+The competitor search radius adapts to settlement size to ensure the query captures realistic local competition even in areas with lower POI density:
+
+| Settlement size | Competitor radius |
+|----------------|-----------------|
+| < 20 000 (small town / suburb) | max(business base radius, 2 000 m) |
+| 20 000 – 99 999 (mid-size city) | max(business base radius, 1 200 m) |
+| ≥ 100 000 (large city) | business base radius unchanged |
+| unknown (not in dataset) | max(business base radius, 2 000 m) |
+
+Population is estimated synchronously from the in-memory dataset before the Overpass query. The adaptation ensures that small towns with spread-out commercial activity are not incorrectly shown as having zero competitors.
 
 ---
 
@@ -108,11 +154,11 @@ Supported business types: `coffee_shop`, `car_wash`, `auto_repair`, `barbershop`
 The system contains:
 
 - **Domain analysis** — understanding what makes a small business viable
-- **Decision model** — a transparent, weighted scoring formula
-- **Data processing** — normalization and metric derivation from raw market data
-- **Live data integration** — real competitor counts from OpenStreetMap
+- **Decision model** — a fuzzy-inference weighted scoring model with transparent rules
+- **Official data processing** — 28,655 Ukrainian settlements from Держстат XLSX, parsed and normalized into a local lookup dataset; KMU 2010 transliteration bridges official Ukrainian names to OSM/Nominatim English output
+- **Live data integration** — real competitor counts and POI density from OpenStreetMap (Overpass API)
 - **Result interpretation** — converting numbers into a business recommendation
-- **Explainability** — every score can be traced back to its contributing factors
+- **Explainability** — every score can be traced back to its contributing factors; verdict-aware report wording ensures GREEN/YELLOW/RED language is never contradictory
 - **AI layer** — LLM-generated explanation of the result in plain language (planned)
 
 ---
@@ -163,7 +209,7 @@ yarn start:dev
 
 # production build + start
 yarn build
-node dist/main.js
+node dist/src/main.js
 ```
 
 Swagger UI: http://localhost:3030/api  
