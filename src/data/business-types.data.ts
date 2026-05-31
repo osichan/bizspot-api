@@ -122,8 +122,9 @@ export const businessTypesData = {
     description: 'Продаж рецептурних та безрецептурних лікарських засобів',
     minBudget: 60_000,
     urbanDependency: 0.65,
-    // shop=chemist catches drugstores that sell similar OTC products
-    osmTags: ['amenity=pharmacy', 'shop=chemist'],
+    // healthcare=pharmacy is the primary tag used for Ukrainian pharmacies in OSM;
+    // amenity=pharmacy exists but is less consistently applied in UA; shop=chemist for drugstores
+    osmTags: ['amenity=pharmacy', 'healthcare=pharmacy', 'shop=chemist'],
     radius: 500,
     saturationDensityPerKm2: 20,
     employees: 4,

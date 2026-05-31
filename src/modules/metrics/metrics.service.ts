@@ -7,6 +7,16 @@ const LOG_DEMAND_DIVISOR = Math.log10(5_000_000 / 1_000);
 // Matches Overpass baseline: average Ukrainian urban district POI density
 const BASELINE_DENSITY_PER_KM2 = 30;
 
+// Small-town population tier — must match adaptiveCompetitorRadius boundaries.
+const SMALL_TOWN_POP_FLOOR = 2_000;
+const SMALL_TOWN_POP_CEILING = 20_000;
+// Peak demand boost added at the tier midpoint (~11k pop); tapers to 0 at both boundaries.
+// Without this, the 5M log anchor makes small local markets look critically unviable even when
+// competition is low and the settlement is real and stable (e.g. Makariv, Irpin, Brovary suburbs).
+// A parabolic shape keeps Kyiv/Lviv exactly unchanged while letting 5-18k towns enter
+// the fuzzy "medium" demand zone when other conditions are favourable.
+const SMALL_TOWN_MAX_DEMAND_BOOST = 0.40;
+
 type computeProps = {
   snapshot: MarketSnapshot;
   budget: number;
@@ -20,7 +30,16 @@ export class MetricsService {
 
   compute({ snapshot, budget }: computeProps): NormalizedMetrics {
     // Macro: city market size, log-scaled (Kyiv 2.9M → 0.94, Poltava 290k → 0.67)
-    const cityFactor = Math.log10(Math.max(snapshot.population, 1000) / 1000) / LOG_DEMAND_DIVISOR;
+    let cityFactor = Math.log10(Math.max(snapshot.population, 1_000) / 1_000) / LOG_DEMAND_DIVISOR;
+
+    // Population-tier adjustment for small settlements (2k–20k).
+    // Parabola: 0 at both boundaries, peak at midpoint (~11k).
+    // Ensures continuity at the 20k boundary with large-city scaling.
+    if (snapshot.population > SMALL_TOWN_POP_FLOOR && snapshot.population < SMALL_TOWN_POP_CEILING) {
+      const t = (snapshot.population - SMALL_TOWN_POP_FLOOR) / (SMALL_TOWN_POP_CEILING - SMALL_TOWN_POP_FLOOR);
+      cityFactor += SMALL_TOWN_MAX_DEMAND_BOOST * 4 * t * (1 - t);
+    }
+
     // Micro: local traffic as modifier, not core driver — keeps city signal alive even in low-traffic zones
     // trafficMultiplier ∈ [0.5, 2.0] → localModifier ∈ [0.5, 1.0]
     const localModifier = 0.5 + 0.5 * ((snapshot.trafficMultiplier - 0.5) / 1.5);
