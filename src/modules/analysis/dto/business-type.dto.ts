@@ -4,10 +4,10 @@ export class BusinessTypeDto {
   @ApiProperty({ example: 'coffee_shop', description: 'Identifier used in POST /analysis/analyze' })
   id: string
 
-  @ApiProperty({ example: 'Coffee shop', description: 'Human-readable display name' })
+  @ApiProperty({ example: 'Кав’ярня', description: 'Назва для відображення' })
   label: string
 
-  @ApiProperty({ example: 'Small local cafe or takeaway coffee point' })
+  @ApiProperty({ example: 'Невелике локальне кафе або точка кави на винос' })
   description: string
 
   @ApiProperty({ example: 20000, description: 'Minimum startup budget in USD required to proceed' })
