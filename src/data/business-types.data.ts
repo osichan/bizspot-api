@@ -135,3 +135,18 @@ export const businessTypesData = {
 
 export type BusinessType = keyof typeof businessTypesData
 export const BUSINESS_TYPES = Object.keys(businessTypesData) as BusinessType[]
+
+/**
+ * Population-based saturation override for business types where area-density alone
+ * produces unrealistic saturation thresholds.
+ *
+ * When set, saturationCompetitors = min(area-based, population / value).
+ * This ensures small-city markets are correctly flagged as saturated when the
+ * per-capita competitor count exceeds what the local population can sustain,
+ * while large-city behavior remains unchanged (area-based is binding there).
+ *
+ * pharmacy: 1 per 2 000 people is moderate saturation; 22 in a 23k city → oversaturated.
+ */
+export const SATURATION_BY_POPULATION: Partial<Record<BusinessType, number>> = {
+  pharmacy: 2_000,
+};

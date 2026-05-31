@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { BusinessType, businessTypesData } from 'src/data/business-types.data';
+import { BusinessType, businessTypesData, SATURATION_BY_POPULATION } from 'src/data/business-types.data';
 import { NominatimService } from 'src/modules/nominatim/nominatim.service';
 import { OverpassService } from 'src/modules/overpass/overpass.service';
 import { IMarketDataProvider } from '../market-data.provider.interface';
@@ -98,9 +98,15 @@ export class UaMarketProvider implements IMarketDataProvider {
         }),
       ]);
 
-    // Saturation threshold scales with the adaptive competitor radius area, not the base radius.
-    // This keeps the saturationRatio meaningful when we widen the search for small towns.
-    const saturationCompetitors = businessTypeData.saturationDensityPerKm2 * areaKm2 * trafficMultiplier;
+    // Saturation threshold: area-based baseline, with population-based minimum for business types
+    // where per-capita density is more meaningful than raw area density (e.g. pharmacy).
+    // min() ensures small cities are flagged saturated when per-capita count is too high,
+    // while large-city behavior remains unchanged (area-based is binding at high populations).
+    const areaSaturation = businessTypeData.saturationDensityPerKm2 * areaKm2 * trafficMultiplier;
+    const popPerUnit = SATURATION_BY_POPULATION[businessType];
+    const saturationCompetitors = popPerUnit
+      ? Math.min(areaSaturation, population / popPerUnit)
+      : areaSaturation;
 
     const avgRent = uahRent / usdRate;
 

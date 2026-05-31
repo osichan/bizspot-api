@@ -28,7 +28,9 @@ export const METRIC_DESCRIPTIONS = {
     high: 'висока конкуренція в районі',
     moderate: 'конкуренція на прийнятному рівні',
     low: 'обмежена конкуренція за даними карт',
-    minimal: 'конкурентів у зоні не виявлено',
+    // "minimal" means low relative saturation — may still have some competitors
+    // Use 'no competitors found' phrasing only when competitors === 0 (handled in report.service.ts)
+    minimal: 'конкурентний тиск у зоні є мінімальним',
   },
 
   demand: {

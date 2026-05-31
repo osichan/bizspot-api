@@ -90,10 +90,15 @@ export class CsvLoggerService {
         data.durationMs,
       ].join(',') + '\n';
 
-    const isEmpty =
-      !fs.existsSync(relativePath) || fs.statSync(relativePath).size === 0;
-    if (isEmpty) {
+    const fileExists = fs.existsSync(relativePath) && fs.statSync(relativePath).size > 0;
+    if (!fileExists) {
       fs.writeFileSync(relativePath, HEADER);
+    } else {
+      // Auto-reset when schema changes so header always matches data columns
+      const firstLine = fs.readFileSync(relativePath, 'utf8').split('\n')[0] + '\n';
+      if (firstLine !== HEADER) {
+        fs.writeFileSync(relativePath, HEADER);
+      }
     }
 
     fs.appendFileSync(relativePath, row);

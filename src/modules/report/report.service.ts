@@ -38,7 +38,19 @@ export class ReportService {
     return `${items.slice(0, -1).join(', ')} та ${items.at(-1)}`;
   }
 
-  private buildNaturalExplanation(risks: Record<MetricKey, RiskLevel>, verdict: Verdict): string {
+  private getDescription(metric: MetricKey, level: RiskLevel, competitors: number): string {
+    // When competitors === 0, use explicit "none found" text only for marketCapacity at low-pressure levels
+    if (metric === 'marketCapacity' && (level === 'minimal' || level === 'low') && competitors === 0) {
+      return 'конкурентів у зоні не виявлено';
+    }
+    return METRIC_DESCRIPTIONS[metric][level];
+  }
+
+  private buildNaturalExplanation(
+    risks: Record<MetricKey, RiskLevel>,
+    descriptions: Record<MetricKey, string>,
+    verdict: Verdict,
+  ): string {
     const entries = Object.entries(risks) as [MetricKey, RiskLevel][];
 
     const negatives: string[] = [];
@@ -46,7 +58,7 @@ export class ReportService {
     const neutral: string[] = [];
 
     for (const [metric, level] of entries) {
-      const text = METRIC_DESCRIPTIONS[metric][level];
+      const text = descriptions[metric];
 
       if (NEGATIVE.includes(level)) negatives.push(text);
       else if (POSITIVE.includes(level)) positives.push(text);
@@ -103,7 +115,7 @@ export class ReportService {
     return result.trim();
   }
 
-  generate({ metrics, verdict }: generateProps): ReportResult {
+  generate({ metrics, snapshot, verdict }: generateProps): ReportResult {
     // marketCapacity = saturationRatio ∈ [0, ∞): higher = more saturated = higher risk.
     // Invert to [0,1] where 0 = saturated (critical risk), 1 = empty market (minimal risk).
     const saturationRisk = this.getRiskLevel(1 - Math.min(metrics.marketCapacity, 1));
@@ -114,12 +126,19 @@ export class ReportService {
       budget: this.getRiskLevel(metrics.budget),
     };
 
+    const descriptions: Record<MetricKey, string> = {
+      demand: this.getDescription('demand', risks.demand, snapshot.competitors),
+      marketCapacity: this.getDescription('marketCapacity', risks.marketCapacity, snapshot.competitors),
+      rent: this.getDescription('rent', risks.rent, snapshot.competitors),
+      budget: this.getDescription('budget', risks.budget, snapshot.competitors),
+    };
+
     return {
       paybackMonths: '',
       risks: (Object.entries(risks) as [MetricKey, RiskLevel][])
         .filter(([, v]) => NEGATIVE.includes(v))
-        .map(([k, v]) => METRIC_DESCRIPTIONS[k][v]),
-      summary: this.buildNaturalExplanation(risks, verdict),
+        .map(([k]) => descriptions[k]),
+      summary: this.buildNaturalExplanation(risks, descriptions, verdict),
     };
   }
 }
