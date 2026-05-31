@@ -149,4 +149,4 @@ export const BUSINESS_TYPES = Object.keys(businessTypesData) as BusinessType[]
  */
 export const SATURATION_BY_POPULATION: Partial<Record<BusinessType, number>> = {
   pharmacy: 2_000,
-};
+}
