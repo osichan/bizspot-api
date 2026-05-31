@@ -19,7 +19,7 @@ export class LocationAvailabilityService {
       return {
         available: false,
         reason: 'outside_ukraine',
-        message: 'Analysis is currently available only for locations within Ukraine.',
+        message: 'Аналіз наразі доступний лише для локацій в Україні.',
         country: addr.country,
         countryCode,
         region,
@@ -34,7 +34,7 @@ export class LocationAvailabilityService {
         available: false,
         reason: 'restricted_safety_area',
         message:
-          'Standard business analysis is unavailable for this location due to limited market data reliability and safety risks.',
+          'Стандартний аналіз недоступний для цієї локації через обмежену надійність ринкових даних.',
         country: 'Ukraine',
         countryCode: 'ua',
         region,

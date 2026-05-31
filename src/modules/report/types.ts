@@ -24,35 +24,35 @@ export const RISK_LEVEL_RANGES: readonly {
 
 export const METRIC_DESCRIPTIONS = {
   marketCapacity: {
-    critical: 'market is heavily saturated',
-    high: 'significant competition in the area',
-    moderate: 'competition is manageable',
-    low: 'limited competition detected in map data',
-    minimal: 'no competitors found in available map data',
+    critical: 'ринок перенасичений конкурентами',
+    high: 'висока конкуренція в районі',
+    moderate: 'конкуренція на прийнятному рівні',
+    low: 'обмежена конкуренція за даними карт',
+    minimal: 'конкурентів у зоні не виявлено',
   },
 
   demand: {
-    critical: 'very low foot traffic for this business type',
-    high: 'below average demand in this area',
-    moderate: 'adequate local demand',
-    low: 'good demand for this business type',
-    minimal: 'strong local demand',
+    critical: 'дуже низький попит для цього типу бізнесу',
+    high: 'попит нижче середнього в цьому районі',
+    moderate: 'попит на достатньому рівні',
+    low: 'хороший попит для цього типу бізнесу',
+    minimal: 'сильний місцевий попит',
   },
 
   rent: {
-    critical: 'rent will likely exceed your budget',
-    high: 'rent is a significant financial pressure',
-    moderate: 'rent is manageable but tight',
-    low: 'rent is comfortable for this budget',
-    minimal: 'rent poses no financial risk',
+    critical: 'оренда, ймовірно, перевищить бюджет',
+    high: 'оренда створює значне фінансове навантаження',
+    moderate: 'оренда прийнятна, але обмежує резерв',
+    low: 'оренда комфортна для цього бюджету',
+    minimal: 'оренда не становить фінансового ризику',
   },
 
   budget: {
-    critical: 'budget is critically below minimum requirements',
-    high: 'budget is below recommended minimum',
-    moderate: 'budget is sufficient but leaves little reserve',
-    low: 'budget is healthy for this business type',
-    minimal: 'budget is well above requirements',
+    critical: 'бюджет критично нижче мінімальних вимог',
+    high: 'бюджет нижче рекомендованого мінімуму',
+    moderate: 'бюджет достатній, але резерв незначний',
+    low: 'бюджет у нормі для цього типу бізнесу',
+    minimal: 'бюджет суттєво перевищує вимоги',
   },
 } as const satisfies Record<MetricKey, Record<RiskLevel, string>>;
 

@@ -74,8 +74,8 @@ export class AnalysisService {
         riskLevel: 1,
       }
       const constraintReport = {
-        risks: ['budget is critically below minimum requirements'],
-        summary: `Budget of $${data.budget} is below the minimum required $${snapshot.minBudget} for this business type. Increase your budget before proceeding.`,
+        risks: ['бюджет критично нижче мінімальних вимог'],
+        summary: `Бюджет $${data.budget} нижче мінімально необхідного $${snapshot.minBudget} для цього типу бізнесу. Збільшіть бюджет перед продовженням.`,
         paybackMonths: '',
       }
       this.csvLoggerService.writeNewData({

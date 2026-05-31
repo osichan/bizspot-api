@@ -142,7 +142,7 @@ describe('LocationAvailabilityService — restricted territories', () => {
     expect(r.available).toBe(false)
     expect(r.reason).toBe('restricted_safety_area')
     expect(r.message).toBe(
-      'Standard business analysis is unavailable for this location due to limited market data reliability and safety risks.',
+      'Стандартний аналіз недоступний для цієї локації через обмежену надійність ринкових даних.',
     )
     expect(r.country).toBe('Ukraine')
     expect(r.countryCode).toBe('ua')

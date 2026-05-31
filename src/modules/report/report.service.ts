@@ -35,7 +35,7 @@ export class ReportService {
   private formatList(items: string[]) {
     if (items.length === 0) return '';
     if (items.length === 1) return items[0];
-    return `${items.slice(0, -1).join(', ')} and ${items.at(-1)}`;
+    return `${items.slice(0, -1).join(', ')} та ${items.at(-1)}`;
   }
 
   private buildNaturalExplanation(risks: Record<MetricKey, RiskLevel>, verdict: Verdict): string {
@@ -60,45 +60,44 @@ export class ReportService {
     let result = '';
 
     // Opener: verdict takes precedence to prevent contradictory messaging
-    // e.g. "strong opportunity" must never appear for a RED verdict
     if (verdict === 'RED') {
       result += negatives.length >= 2
-        ? `This opportunity is not viable at this location, mainly because ${neg}. `
-        : `This opportunity is not recommended in its current form. `;
+        ? `Ця локація не є доцільною, насамперед через: ${neg}. `
+        : `Відкриття бізнесу на цій локації наразі не рекомендується. `;
     } else if (verdict === 'YELLOW') {
       if (negatives.length >= 2) {
-        result += `This opportunity has potential but faces significant challenges: ${neg}. `;
+        result += `Локація має потенціал, але є суттєві ризики: ${neg}. `;
       } else if (positives.length >= 2) {
-        result += `This is a moderate opportunity with some strengths, including ${pos}. `;
+        result += `Помірна можливість із рядом переваг, зокрема: ${pos}. `;
       } else {
-        result += `This is a balanced opportunity with mixed signals. `;
+        result += `Збалансована локація з неоднозначними сигналами. `;
       }
     } else {
       // GREEN
       result += positives.length >= 2
-        ? `This looks like a strong opportunity, driven by ${pos}. `
-        : `This is a solid opportunity. `;
+        ? `Перспективна локація з сильними показниками: ${pos}. `
+        : `Хороша локація для відкриття бізнесу. `;
     }
 
     if (neg && pos) {
-      result += `While ${pos}, there are still issues such as ${neg}. `;
+      result += `Попри переваги (${pos}), є проблемні зони: ${neg}. `;
     } else if (neg && !pos) {
-      result += `The main concerns are ${neg}. `;
+      result += `Основні проблеми: ${neg}. `;
     } else if (pos && !neg) {
-      result += `Key advantages include ${pos}. `;
+      result += `Ключові переваги: ${pos}. `;
     }
 
     if (neu) {
-      result += `Other factors are average, such as ${neu}. `;
+      result += `Інші показники на середньому рівні: ${neu}. `;
     }
 
     // Closer: verdict-aware — RED must never say "You can proceed"
     if (verdict === 'RED') {
-      result += `Address the critical issues before considering this location.`;
+      result += `Усуньте критичні проблеми перед розглядом цієї локації.`;
     } else if (verdict === 'YELLOW') {
-      result += `Proceed carefully with a mitigation plan for the weaker areas.`;
+      result += `Діяйте обережно та підготуйте план для слабких зон.`;
     } else {
-      result += `You can proceed, but maintaining these advantages will be critical.`;
+      result += `Можна рухатись далі — важливо підтримувати ці переваги.`;
     }
 
     return result.trim();

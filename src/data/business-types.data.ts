@@ -1,7 +1,7 @@
 export const businessTypesData = {
   coffee_shop: {
-    label: 'Coffee shop',
-    description: 'Small local cafe or takeaway coffee point',
+    label: 'Кав’ярня',
+    description: 'Невелике локальне кафе або точка кави на винос',
     minBudget: 20_000,
     urbanDependency: 0.9,
     osmTags: ['amenity=cafe', 'shop=coffee'],
@@ -13,8 +13,8 @@ export const businessTypesData = {
   },
 
   barbershop: {
-    label: 'Barbershop',
-    description: 'Hairdresser or barber salon',
+    label: 'Барбершоп / перукарня',
+    description: 'Перукарня або салон барбера',
     minBudget: 15_000,
     urbanDependency: 0.8,
     // shop=beauty catches beauty salons that compete for the same customers
@@ -27,8 +27,8 @@ export const businessTypesData = {
   },
 
   grocery_store: {
-    label: 'Grocery store',
-    description: 'Local food and grocery retail, including convenience formats',
+    label: 'Продуктовий магазин',
+    description: 'Локальна продуктова торгівля, зокрема формат "у дворі"',
     minBudget: 35_000,
     urbanDependency: 0.85,
     osmTags: ['shop=supermarket', 'shop=convenience', 'shop=grocery'],
@@ -40,8 +40,8 @@ export const businessTypesData = {
   },
 
   bakery: {
-    label: 'Bakery',
-    description: 'Fresh bread, pastries, and baked goods shop',
+    label: 'Пекарня',
+    description: 'Магазин свіжого хліба, випічки та хлібобулочних виробів',
     minBudget: 25_000,
     urbanDependency: 0.8,
     osmTags: ['shop=bakery'],
@@ -53,8 +53,8 @@ export const businessTypesData = {
   },
 
   fitness_studio: {
-    label: 'Fitness studio',
-    description: 'Gym, fitness centre, or group training studio',
+    label: 'Фітнес-студія',
+    description: 'Спортзал, фітнес-центр або студія групових тренувань',
     minBudget: 50_000,
     urbanDependency: 0.85,
     osmTags: ['leisure=fitness_centre', 'sport=fitness'],
@@ -66,8 +66,8 @@ export const businessTypesData = {
   },
 
   flower_shop: {
-    label: 'Flower shop',
-    description: 'Fresh flowers, bouquets, and gift arrangements retail',
+    label: 'Квітковий магазин',
+    description: 'Продаж свіжих квітів, букетів та подарункових композицій',
     minBudget: 12_000,
     urbanDependency: 0.75,
     osmTags: ['shop=florist'],
@@ -79,8 +79,8 @@ export const businessTypesData = {
   },
 
   pet_store: {
-    label: 'Pet store',
-    description: 'Pets, pet food, accessories, and care products',
+    label: 'Зоомагазин',
+    description: 'Тварини, корми, аксесуари та засоби догляду для домашніх улюбленців',
     minBudget: 20_000,
     urbanDependency: 0.8,
     osmTags: ['shop=pet'],
@@ -92,8 +92,8 @@ export const businessTypesData = {
   },
 
   car_wash: {
-    label: 'Car wash',
-    description: 'Self-service or automatic vehicle washing station',
+    label: 'Автомийка',
+    description: 'Самообслуговування або автоматична мийка автомобілів',
     minBudget: 30_000,
     urbanDependency: 0.7,
     osmTags: ['amenity=car_wash'],
@@ -105,8 +105,8 @@ export const businessTypesData = {
   },
 
   auto_repair: {
-    label: 'Auto repair',
-    description: 'Car repair workshop and mechanical service station',
+    label: 'Автосервіс',
+    description: 'Майстерня з ремонту автомобілів та технічного обслуговування',
     minBudget: 50_000,
     urbanDependency: 0.75,
     osmTags: ['shop=car_repair'],
@@ -118,8 +118,8 @@ export const businessTypesData = {
   },
 
   pharmacy: {
-    label: 'Pharmacy',
-    description: 'Drugstore selling prescription and OTC medicines',
+    label: 'Аптека',
+    description: 'Продаж рецептурних та безрецептурних лікарських засобів',
     minBudget: 60_000,
     urbanDependency: 0.65,
     // shop=chemist catches drugstores that sell similar OTC products
