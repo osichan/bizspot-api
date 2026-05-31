@@ -127,6 +127,33 @@ describe('PopulationService — settlement population fallback', () => {
     expect(pop).toBe(196)
   })
 
+  // ── Kryvyi Rih regression ─────────────────────────────────────────────────
+
+  it('Kryvyi Rih: resolves to 630 000 without calling Overpass', async () => {
+    // Nominatim returns city="Kryvyi Rih" (BGN: "ий"→"yi") → lowercased "kryvyi rih".
+    // KMU transliteration produces "kryvyy rih" ("ий"→"yy") — no match in generated dataset.
+    // Fix: explicit entry in UA_CITY_POPULATION under key "kryvyi rih".
+    const { svc, mockOverpass } = makeService(0)
+    const pop = await svc.getMarketSize({
+      city: 'kryvyi rih',
+      state: 'dnipropetrovsk',
+      lat: 47.9068,
+      lng: 33.3817,
+      radius: 1_200,
+    })
+    expect(pop).toBe(630_000)
+    expect(mockOverpass.getBuildingPopulation).not.toHaveBeenCalled()
+  })
+
+  it('Kryvyi Rih estimateSync: returns 630 000 from UA_CITY_POPULATION', () => {
+    const { svc } = makeService(0)
+    const pop = svc.estimateSync({
+      city: 'kryvyi rih',
+      state: 'dnipropetrovsk',
+    })
+    expect(pop).toBe(630_000)
+  })
+
   // ── Major city short-circuit ──────────────────────────────────────────────
 
   it('Lviv: returns 720 000 without calling Overpass', async () => {

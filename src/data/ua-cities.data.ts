@@ -25,4 +25,8 @@ export const UA_CITY_POPULATION: Record<string, number> = {
   kramatorsk: 150_000,
   bila_tserkva: 210_000,
   mariupol: 450_000,
+  // Nominatim EN returns "Kryvyi Rih" (BGN transliteration: "ий"→"yi").
+  // KMU transliteration produces "kryvyy rih" ("ий"→"yy") — no match in the generated dataset.
+  // Adding here ensures the city-known short-circuit fires before settlement lookup.
+  'kryvyi rih': 630_000,
 };

@@ -104,6 +104,43 @@ describe('MetricsService — small-town demand normalization', () => {
   })
 })
 
+// ── Issue 3: Kryvyi Rih fitness_studio demand regression ─────────────────────
+//
+// Root cause: UA_CITY_POPULATION was missing "kryvyi rih".
+// Population fell back to a tiny OSM building count → cityFactor ≈ 0 → demand = critical.
+// Fix: "kryvyi rih": 630_000 added to UA_CITY_POPULATION.
+// This test verifies that with the correct population the demand metric is not critical.
+
+describe('MetricsService — Kryvyi Rih fitness_studio demand regression', () => {
+  it('fitness_studio demand with pop 630 000 and avg traffic: not critical (> 0.2)', () => {
+    // cityFactor = log10(630) / log10(5000) ≈ 0.757
+    // localModifier at trafficMultiplier=1.0 ≈ 0.667
+    // demand = 0.757 * 0.85 * 0.667 ≈ 0.429 — moderate, not critical
+    const d = demand(630_000, 0.85, 1.0)
+    expect(d).toBeGreaterThan(0.2)
+  })
+
+  it('fitness_studio demand with pop 630 000 and avg traffic: at least moderate (> 0.35)', () => {
+    const d = demand(630_000, 0.85, 1.0)
+    expect(d).toBeGreaterThan(0.35)
+  })
+
+  it('fitness_studio demand with pop 630 000 even at min traffic (0.5): above critical', () => {
+    // localModifier at trafficMultiplier=0.5 = 0.5
+    // demand = 0.757 * 0.85 * 0.5 ≈ 0.322 — high-risk, but NOT critical
+    const d = demand(630_000, 0.85, 0.5)
+    expect(d).toBeGreaterThan(0.2)
+  })
+
+  it('fitness_studio in Kryvyi Rih strictly better demand than worst-case OSM fallback (pop ≤ 1 000)', () => {
+    const kryvyiRih = demand(630_000, 0.85, 1.0)
+    // pop=1000 is the formula floor (max(pop,1000)/1000 = 1 → cityFactor=0, below SMALL_TOWN_POP_FLOOR so no boost)
+    const osMFallback = demand(1_000, 0.85, 1.0)
+    expect(kryvyiRih).toBeGreaterThan(osMFallback)
+    expect(osMFallback).toBeLessThan(0.05) // documents the broken behavior: demand collapses to ~0
+  })
+})
+
 // ── Issue 2: Pharmacy OSM tag regression ────────────────────────────────────
 
 describe('pharmacy osmTags regression', () => {
